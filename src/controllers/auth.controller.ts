@@ -3,7 +3,7 @@ import User from '../models/user.model';
 import jwt from "jsonwebtoken";
 
 //register controller
-export const register = async ({ req, res }: any) => {
+export const register = async (req: any, res: any) => {
     //body of api
     const { name, email, password } = req.body;
 
@@ -19,7 +19,7 @@ export const register = async ({ req, res }: any) => {
 };
 
 //login controller
-export const login = async ({ req, res }: any) => {
+export const login = async (req: any, res: any) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
