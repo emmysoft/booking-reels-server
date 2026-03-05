@@ -1,5 +1,3 @@
-// src/index.ts
-
 import dotenv from "dotenv";
 import app from "./app";
 import { connectDatabase } from "./config/database";
