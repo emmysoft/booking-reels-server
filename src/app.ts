@@ -18,4 +18,6 @@ app.use("/api/bookmarks", bookmarkRoutes);
 //error handling middleware
 app.use(errorHandler);
 
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+
 export default app;
