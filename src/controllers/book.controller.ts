@@ -34,7 +34,7 @@ export const getBookDetails = async (req: Request, res: Response) => {
     };
 };
 
-export const searchBooks = async (req: Request, res: Response) => {
+export const searchBooksController = async (req: Request, res: Response) => {
     try {
         const { query } = req.query;
         const books = await Book.find({ title: { $regex: query, $options: "i" } });

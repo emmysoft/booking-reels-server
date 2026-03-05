@@ -19,10 +19,10 @@ export const register = async ({ req, res }: any) => {
 };
 
 //login controller
-export const login = async ({req, res}: any) => { 
+export const login = async ({ req, res }: any) => {
     const { email, password } = req.body;
 
-    const user = await User.findOne({email});
+    const user = await User.findOne({ email });
 
     if (!user || !user.password) {
         return res.status(400).json({ error: "Invalid credentials" });
