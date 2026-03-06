@@ -5,12 +5,13 @@ import jwt from "jsonwebtoken";
 //register controller
 export const register = async (req: any, res: any) => {
     //body of api
-    const { name, email, password } = req.body;
+    const { name, username, email, password } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
         name,
+        username,
         email,
         password: hashedPassword,
     });
@@ -20,9 +21,9 @@ export const register = async (req: any, res: any) => {
 
 //login controller
 export const login = async (req: any, res: any) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ username });
 
     if (!user || !user.password) {
         return res.status(400).json({ error: "Invalid credentials" });
