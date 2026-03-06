@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Book from "../models/book.model";
-import { fetchBookById } from "../services/googleBooks.service";
+import { fetchBookById, searchBooks } from "../services/googleBooks.service";
 
 export const getBookDetails = async (req: Request, res: Response) => {
     try {
@@ -37,7 +37,30 @@ export const getBookDetails = async (req: Request, res: Response) => {
 export const searchBooksController = async (req: Request, res: Response) => {
     try {
         const { query } = req.query;
-        const books = await Book.find({ title: { $regex: query, $options: "i" } });
+
+        // 1. Check MongoDB cache first
+        let books = await Book.find({ title: { $regex: query, $options: "i" } });
+
+        // 2. If nothing cached, fetch from Google Books
+        if (books.length === 0) {
+            const googleData = await searchBooks(query as string);
+            const items = googleData.items || [];
+
+            // 3. Save to MongoDB for future cache hits
+            const booksToInsert = items.map((item: any) => ({
+                googleBooksId: item.id,
+                title: item.volumeInfo.title || "",
+                authors: item.volumeInfo.authors || [],
+                description: item.volumeInfo.description || "",
+                thumbnail: item.volumeInfo.imageLinks?.thumbnail || "",
+                publishedDate: item.volumeInfo.publishedDate || "",
+                categories: item.volumeInfo.categories || [],
+                pageCount: item.volumeInfo.pageCount || 0,
+            }));
+
+            books = await Book.insertMany(booksToInsert, { ordered: false }) as any;
+        }
+
         res.json(books);
     } catch (error) {
         console.error(error);
