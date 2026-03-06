@@ -7,7 +7,14 @@ export const fetchBookById = async (id: string) => {
     return response.data;
 };
 
+// googleBooks.service.ts
 export const searchBooks = async (query: string) => {
-    const response = await axios.get(`${BASE_URL}?q=${query}`);
+    const response = await axios.get(`${BASE_URL}`, {
+        params: {
+            q: query,
+            maxResults: 10,
+            key: process.env.GOOGLE_BOOKS_API_KEY, // 👈 add API key to avoid rate limits
+        }
+    });
     return response.data;
 };

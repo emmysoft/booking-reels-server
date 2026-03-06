@@ -38,26 +38,33 @@ export const searchBooksController = async (req: Request, res: Response) => {
     try {
         const { query } = req.query;
 
-        if (!query || (query as string).trim() === "") { // 👈 guard
+        if (!query || (query as string).trim() === "") {
             return res.status(400).json({ error: "Query is required" });
         }
 
         let books = await Book.find({ title: { $regex: query, $options: "i" } });
 
         if (books.length === 0) {
-            const googleData = await searchBooks(query as string);
-            const items = googleData.items || [];
-            const booksToInsert = items.map((item: any) => ({
-                googleBooksId: item.id,
-                title: item.volumeInfo.title || "",
-                authors: item.volumeInfo.authors || [],
-                description: item.volumeInfo.description || "",
-                thumbnail: item.volumeInfo.imageLinks?.thumbnail || "",
-                publishedDate: item.volumeInfo.publishedDate || "",
-                categories: item.volumeInfo.categories || [],
-                pageCount: item.volumeInfo.pageCount || 0,
-            }));
-            books = await Book.insertMany(booksToInsert, { ordered: false }) as any;
+            try {
+                const googleData = await searchBooks(query as string);
+                const items = googleData.items || [];
+                const booksToInsert = items.map((item: any) => ({
+                    googleBooksId: item.id,
+                    title: item.volumeInfo.title || "",
+                    authors: item.volumeInfo.authors || [],
+                    description: item.volumeInfo.description || "",
+                    thumbnail: item.volumeInfo.imageLinks?.thumbnail || "",
+                    publishedDate: item.volumeInfo.publishedDate || "",
+                    categories: item.volumeInfo.categories || [],
+                    pageCount: item.volumeInfo.pageCount || 0,
+                }));
+                books = await Book.insertMany(booksToInsert, { ordered: false }) as any;
+            } catch (googleError: any) {
+                if (googleError?.response?.status === 429) {
+                    return res.status(200).json([]); // 👈 return empty instead of crashing
+                }
+                throw googleError;
+            }
         }
 
         res.json(books);
