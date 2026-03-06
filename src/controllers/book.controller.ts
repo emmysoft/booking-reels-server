@@ -38,15 +38,15 @@ export const searchBooksController = async (req: Request, res: Response) => {
     try {
         const { query } = req.query;
 
-        // 1. Check MongoDB cache first
+        if (!query || (query as string).trim() === "") { // 👈 guard
+            return res.status(400).json({ error: "Query is required" });
+        }
+
         let books = await Book.find({ title: { $regex: query, $options: "i" } });
 
-        // 2. If nothing cached, fetch from Google Books
         if (books.length === 0) {
             const googleData = await searchBooks(query as string);
             const items = googleData.items || [];
-
-            // 3. Save to MongoDB for future cache hits
             const booksToInsert = items.map((item: any) => ({
                 googleBooksId: item.id,
                 title: item.volumeInfo.title || "",
@@ -57,13 +57,12 @@ export const searchBooksController = async (req: Request, res: Response) => {
                 categories: item.volumeInfo.categories || [],
                 pageCount: item.volumeInfo.pageCount || 0,
             }));
-
             books = await Book.insertMany(booksToInsert, { ordered: false }) as any;
         }
 
         res.json(books);
     } catch (error) {
-        console.error(error);
+        console.error("searchBooksController error:", error);
         res.status(500).json({ error: "Internal server error" });
-    };
+    }
 };
