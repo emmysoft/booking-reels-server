@@ -9,6 +9,11 @@ export const register = async (req: any, res: any) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const existing = await User.findOne({ $or: [{ email }, { username }] });
+    if (existing) {
+        return res.status(400).json({ error: "Email or username already taken" });
+    };
+
     const user = await User.create({
         name,
         username,
@@ -38,4 +43,9 @@ export const login = async (req: any, res: any) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
 
     res.json({ token, user });
+};
+
+//logout controller
+export const logout = async (req: any, res: any) => {
+    res.json({ message: "Logged out successfully" });
 };
