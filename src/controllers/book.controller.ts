@@ -21,6 +21,17 @@ const mapGutenbergBook = (item: any) => ({
     downloadCount: item.download_count || 0,
 });
 
+//get books
+export const getBooksController = async (req: Request, res: Response) => {
+    try {
+        const books = await Book.find();
+        res.json(books);
+    } catch (error) {
+        console.error("getBooksController error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 // Search books
 export const searchBooksController = async (req: Request, res: Response) => {
     try {
