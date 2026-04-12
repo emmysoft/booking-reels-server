@@ -24,7 +24,18 @@ const mapGutenbergBook = (item: any) => ({
 //get books
 export const getBooksController = async (req: Request, res: Response) => {
     try {
-        const books = await Book.find();
+        let books = await Book.find();
+
+        // If DB is empty or sparse, seed it from Gutenberg
+        if (books.length < 20) {
+            const results = await searchGutenbergBooks(""); // fetches popular/default books
+            const booksToInsert = results.map(mapGutenbergBook);
+
+            await Book.insertMany(booksToInsert, { ordered: false }).catch(() => { });
+
+            books = await Book.find();
+        }
+
         res.json(books);
     } catch (error) {
         console.error("getBooksController error:", error);
