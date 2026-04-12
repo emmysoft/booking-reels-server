@@ -2,11 +2,18 @@ import axios from "axios";
 
 const BASE_URL = "https://gutendex.com";
 
+export const getBooks = async () => {
+    const response = await axios.get(`${BASE_URL}/books`, {
+        params: { languages: "en" },
+    });
+    return response.data.results;
+};
+
 export const searchGutenbergBooks = async (query: string) => {
     const response = await axios.get(`${BASE_URL}/books`, {
         params: { search: query, languages: "en" },
     });
-    return response.data.results; // array of books
+    return response.data.results;
 };
 
 export const getGutenbergBookById = async (id: number) => {
